@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>化工学子的博客 - 数据透视 | 财经 | 命理学</title>
+    <meta name="description" content="化工大一学生的个人博客，分享数据透视分析、财经知识和命理学研究。">
+    <meta name="author" content="王某人">
+    <meta name="theme-color" content="#667eea">
+    <meta name="color-scheme" content="light dark">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a6fd8;
+            --primary-light: #7c8ffe;
+            --secondary: #764ba2;
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1);
+            --radius-sm: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            min-height: 100vh;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .navbar.scrolled {
+            box-shadow: var(--shadow-md);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 4px;
+        }
+
+        .nav-links a {
+            padding: 8px 16px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-links a.active {
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .theme-toggle, .lang-toggle {
+            background: none;
+            border: none;
+            padding: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover, .lang-toggle:hover {
+            background-color: var(--border-light);
+        }
+
+        .blog-main {
+            padding-top: 120px;
+            padding-bottom: 80px;
+        }
+
+        .blog-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .blog-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        .blog-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .category-filter {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 10px 24px;
+            border: 2px solid var(--border);
+            background: transparent;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .category-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
+            color: white;
+        }
+
+        .blog-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 32px;
+        }
+
+        .blog-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .blog-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--border);
+        }
+
+        .blog-card:hover {
+            transform: translateY(-8px) rotate(0.5deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .blog-card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .blog-card:hover .blog-card-image {
+            transform: scale(1.05);
+        }
+
+        .blog-card-content {
+            padding: 20px;
+        }
+
+        .blog-card-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .blog-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .blog-card-excerpt {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .blog-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .blog-card-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .blog-card-tag {
+            padding: 2px 8px;
+            background: var(--border-light);
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 120px;
+            height: fit-content;
+        }
+
+        .sidebar-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .sidebar-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-categories {
+            list-style: none;
+        }
+
+        .sidebar-categories li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-categories a {
+            display: block;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .sidebar-categories a:hover {
+            color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 6px 12px;
+            background: var(--border-light);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tag:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .popular-posts {
+            list-style: none;
+        }
+
+        .popular-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+            transition: var(--transition);
+        }
+
+        .popular-item:last-child {
+            border-bottom: none;
+        }
+
+        .popular-item:hover {
+            padding-left: 8px;
+        }
+
+        .popular-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            flex-shrink: 0;
+        }
+
+        .popular-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .popular-item-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .popular-item-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .footer {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 48px 0;
+            margin-top: 48px;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .footer p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .ai-chat-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+        }
+
+        .chat-toggle {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .chat-window {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            width: 350px;
+            height: 450px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+        }
+
+        .chat-window.active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 { margin: 0; font-size: 1.1rem; }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .close-button:hover { background: rgba(255,255,255,0.2); }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            max-width: 80%;
+        }
+
+        .user-message {
+            margin-left: auto;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 18px 18px 0 18px;
+        }
+
+        .ai-message {
+            background: var(--bg-card);
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            border-radius: 18px 18px 18px 0;
+            border: 1px solid var(--border);
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 8px;
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            outline: none;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .chat-input input:focus {
+            border-color: var(--primary);
+        }
+
+        .chat-input button {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .chat-input button:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .typing {
+            display: inline-block;
+            animation: typing 1.5s infinite;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+
+        .api-config {
+            padding: 1rem;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .api-config input {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .api-config button {
+            width: 100%;
+            padding: 8px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .api-config button:hover {
+            background: var(--primary-dark);
+        }
+
+        @media (max-width: 900px) {
+            .blog-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .nav-links {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 16px;
+                box-shadow: var(--shadow-lg);
+                display: none;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .blog-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .blog-content {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-window {
+                width: calc(100vw - 48px);
+                height: 400px;
+            }
+        }
+
+        .lazy-image {
+            opacity: 0;
+            filter: blur(5px);
+            transition: opacity 0.5s ease, filter 0.5s ease;
+        }
+
+        .lazy-image.loaded {
+            opacity: 1;
+            filter: blur(0);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">王某人</a>
+            <button class="hamburger" id="hamburger">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="index.html#about">关于我</a></li>
+                <li><a href="index.html#experience">经历</a></li>
+                <li><a href="index.html#skills">技能</a></li>
+                <li><a href="index.html#projects">项目</a></li>
+                <li><a href="blog.html" class="active">博客</a></li>
+                <li><a href="index.html#contact">联系</a></li>
+                <li><button class="theme-toggle" id="themeToggle">🌙</button></li>
+                <li><button class="lang-toggle" id="langToggle">EN</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="blog-main">
+        <div class="container">
+            <header class="blog-header">
+                <h1>我的博客</h1>
+                <p>分享数据透视分析、财经知识和命理学研究</p>
+            </header>
+
+            <nav class="category-filter">
+                <button class="category-btn active" data-category="all">全部</button>
+                <button class="category-btn" data-category="frontend">📊 数据透视</button>
+                <button class="category-btn" data-category="backend">💰 财经</button>
+                <button class="category-btn" data-category="life">🔮 命理学</button>
+            </nav>
+
+            <div class="blog-grid">
+                <div class="blog-content" id="blogContent">
+                </div>
+
+                <aside class="sidebar">
+                    <div class="sidebar-section">
+                        <h3>📁 分类</h3>
+                        <ul class="sidebar-categories">
+                            <li><a href="#" data-category="all">全部文章</a></li>
+                            <li><a href="#" data-category="frontend">📊 数据透视</a></li>
+                            <li><a href="#" data-category="backend">💰 财经</a></li>
+                            <li><a href="#" data-category="life">🔮 命理学</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3>🏷️ 标签云</h3>
+                        <div class="tag-cloud" id="tagCloud">
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3>🔥 热门文章</h3>
+                        <ul class="popular-posts" id="popularPosts">
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-logo">王某人</div>
+        <p>© 2026 王某人. 保留所有权利.</p>
+    </footer>
+
+    <div class="ai-chat-container">
+        <button class="chat-toggle" id="chatToggle">🤖</button>
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <h3>AI助手</h3>
+                <button class="close-button" id="closeChat">×</button>
+            </div>
+            <div class="api-config">
+                <input type="text" id="apiKey" placeholder="百度API Key">
+                <input type="text" id="secretKey" placeholder="百度Secret Key">
+                <button id="saveKeys">保存密钥</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">你好！我是你的AI助手，有什么可以帮助你的吗？</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="输入你的问题...">
+                <button id="sendMessage">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const blogPosts = [
+            {
+                id: 1,
+                title: "Excel数据透视表入门指南 - 化工数据分析必备技能",
+                excerpt: "作为化工专业学生，数据透视表是分析实验数据的利器。本文详细介绍如何使用Excel数据透视表进行数据汇总、筛选和可视化分析，附化工实验数据案例。",
+                image: "https://picsum.photos/seed/pivot/800/600",
+                date: "2026-05-08",
+                category: "frontend",
+                categoryLabel: "数据透视",
+                tags: ["Excel", "数据透视表", "化工"]
+            },
+            {
+                id: 2,
+                title: "化工数据可视化：如何用图表展示实验结果",
+                excerpt: "数据分析的最终目的是呈现。本文介绍常用的数据可视化方法，包括折线图、柱状图、散点图在化工数据分析中的应用场景和制作技巧。",
+                image: "https://picsum.photos/seed/visual/800/600",
+                date: "2026-05-06",
+                category: "frontend",
+                categoryLabel: "数据透视",
+                tags: ["数据可视化", "图表", "化工"]
+            },
+            {
+                id: 3,
+                title: "大学生理财入门：从了解基金开始",
+                excerpt: "作为大学生，如何利用有限的生活费进行理财？本文从基金基础知识讲起，介绍适合学生的低风险理财方式和投资策略。",
+                image: "https://picsum.photos/seed/fund/800/600",
+                date: "2026-05-04",
+                category: "backend",
+                categoryLabel: "财经",
+                tags: ["理财", "基金", "大学生"]
+            },
+            {
+                id: 4,
+                title: "K线图基础解读：股票入门必修课",
+                excerpt: "想了解股票但看不懂K线图？本文用通俗易懂的语言讲解K线图的基本构成、常见形态和解读方法，帮助你迈出投资第一步。",
+                image: "https://picsum.photos/seed/stock/800/600",
+                date: "2026-05-02",
+                category: "backend",
+                categoryLabel: "财经",
+                tags: ["股票", "K线图", "投资"]
+            },
+            {
+                id: 5,
+                title: "天干地支与五行相生相克原理",
+                excerpt: "命理学的核心是天干地支和五行理论。本文系统介绍十天干、十二地支的含义，以及五行相生相克的基本规律，帮助你理解命理基础。",
+                image: "https://picsum.photos/seed/astrology/800/600",
+                date: "2026-04-30",
+                category: "life",
+                categoryLabel: "命理学",
+                tags: ["命理", "天干地支", "五行"]
+            },
+            {
+                id: 6,
+                title: "八字排盘入门：如何解读自己的生辰八字",
+                excerpt: "生辰八字是命理学的核心。本文介绍如何排八字、理解四柱的含义，以及如何通过八字初步判断性格和运势特点。",
+                image: "https://picsum.photos/seed/bazi/800/600",
+                date: "2026-04-28",
+                category: "life",
+                categoryLabel: "命理学",
+                tags: ["八字", "排盘", "命理"]
+            },
+            {
+                id: 7,
+                title: "化工实验数据处理技巧分享",
+                excerpt: "实验数据处理是化工专业的必修课。本文分享我在实验数据处理中的实用技巧，包括数据清洗、误差分析和结果呈现方法。",
+                image: "https://picsum.photos/seed/experiment/800/600",
+                date: "2026-04-26",
+                category: "frontend",
+                categoryLabel: "数据透视",
+                tags: ["化工实验", "数据处理", "实验技巧"]
+            },
+            {
+                id: 8,
+                title: "大学生如何培养理财思维",
+                excerpt: "理财不仅是投资，更是一种思维方式。本文从消费习惯、储蓄意识、风险认知三个方面，分享大学生如何培养正确的理财思维。",
+                image: "https://picsum.photos/seed/mindset/800/600",
+                date: "2026-04-24",
+                category: "backend",
+                categoryLabel: "财经",
+                tags: ["理财思维", "大学生", "消费观"]
+            },
+            {
+                id: 9,
+                title: "生肖与性格：从属相看人生特质",
+                excerpt: "十二生肖不仅是纪年符号，也反映了人的性格特点。本文分析十二生肖的性格特征和相处之道，从传统文化角度理解人际关系。",
+                image: "https://picsum.photos/seed/zodiac/800/600",
+                date: "2026-04-22",
+                category: "life",
+                categoryLabel: "命理学",
+                tags: ["生肖", "性格", "传统文化"]
+            },
+            {
+                id: 10,
+                title: "数据透视表高级技巧：多重汇总与计算字段",
+                excerpt: "掌握基础后，本文带你深入数据透视表的高级功能，包括多重汇总、计算字段、切片器等实用技巧，提升数据分析效率。",
+                image: "https://picsum.photos/seed/advanced/800/600",
+                date: "2026-04-20",
+                category: "frontend",
+                categoryLabel: "数据透视",
+                tags: ["Excel技巧", "数据透视表", "高级功能"]
+            },
+            {
+                id: 11,
+                title: "基金定投：适合大学生的稳健投资方式",
+                excerpt: "基金定投是新手入门的最佳选择。本文介绍基金定投的原理、优势和操作方法，帮助你制定适合自己的定投计划。",
+                image: "https://picsum.photos/seed/dca/800/600",
+                date: "2026-04-18",
+                category: "backend",
+                categoryLabel: "财经",
+                tags: ["基金定投", "投资", "大学生"]
+            },
+            {
+                id: 12,
+                title: "五行与健康：从命理角度看养生",
+                excerpt: "中医和命理都基于五行理论。本文探讨五行与人体五脏的对应关系，以及如何根据自身五行属性进行养生调理。",
+                image: "https://picsum.photos/seed/health/800/600",
+                date: "2026-04-16",
+                category: "life",
+                categoryLabel: "命理学",
+                tags: ["五行", "健康", "养生"]
+            }
+        ];
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function renderPosts(posts) {
+            const container = document.getElementById('blogContent');
+            container.innerHTML = posts.map((post, index) => `
+                <article class="blog-card" style="animation-delay: ${index * 0.1}s;">
+                    <img src="${post.image}" alt="${post.title}" class="blog-card-image lazy-image" loading="lazy">
+                    <div class="blog-card-content">
+                        <span class="blog-card-category">${post.categoryLabel}</span>
+                        <h3 class="blog-card-title">${post.title}</h3>
+                        <p class="blog-card-excerpt">${post.excerpt}</p>
+                        <div class="blog-card-footer">
+                            <span>${formatDate(post.date)}</span>
+                            <div class="blog-card-tags">
+                                ${post.tags.slice(0, 2).map(tag => `<span class="blog-card-tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+            
+            lazyLoadImages();
+        }
+
+        function lazyLoadImages() {
+            const images = document.querySelectorAll('.lazy-image');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.src;
+                        img.classList.add('loaded');
+                        observer.unobserve(img);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            images.forEach(img => observer.observe(img));
+        }
+
+        function renderTags() {
+            const tags = new Set();
+            blogPosts.forEach(post => post.tags.forEach(tag => tags.add(tag)));
+            const tagCloud = document.getElementById('tagCloud');
+            tagCloud.innerHTML = Array.from(tags).slice(0, 10).map(tag => `
+                <span class="tag" data-tag="${tag}">${tag}</span>
+            `).join('');
+        }
+
+        function renderPopularPosts() {
+            const popular = blogPosts.slice(0, 5);
+            const container = document.getElementById('popularPosts');
+            container.innerHTML = popular.map(post => `
+                <li class="popular-item">
+                    <img src="${post.image}" alt="${post.title}" loading="lazy">
+                    <div class="popular-item-content">
+                        <div class="popular-item-title">${post.title}</div>
+                        <div class="popular-item-date">${formatDate(post.date)}</div>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function filterByCategory(category) {
+            const posts = category === 'all' ? blogPosts : blogPosts.filter(p => p.category === category);
+            renderPosts(posts);
+        }
+
+        function filterByTag(tag) {
+            const posts = blogPosts.filter(p => p.tags.includes(tag));
+            renderPosts(posts);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPosts(blogPosts);
+            renderTags();
+            renderPopularPosts();
+
+            const categoryBtns = document.querySelectorAll('.category-btn, .sidebar-categories a');
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const category = btn.dataset.category;
+                    filterByCategory(category);
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelector(`.category-btn[data-category="${category}"]`)?.classList.add('active');
+                });
+            });
+
+            document.querySelectorAll('.tag').forEach(tag => {
+                tag.addEventListener('click', () => {
+                    filterByTag(tag.dataset.tag);
+                });
+            });
+
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar.classList.toggle('scrolled', window.scrollY > 20);
+            });
+
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.getElementById('navLinks');
+            hamburger.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+            });
+        });
+
+        const chatToggle = document.getElementById('chatToggle');
+        const chatWindow = document.getElementById('chatWindow');
+        const closeChat = document.getElementById('closeChat');
+        const chatInput = document.getElementById('chatInput');
+        const sendMessage = document.getElementById('sendMessage');
+        const chatMessages = document.getElementById('chatMessages');
+        const apiKeyInput = document.getElementById('apiKey');
+        const secretKeyInput = document.getElementById('secretKey');
+        const saveKeys = document.getElementById('saveKeys');
+
+        chatToggle.addEventListener('click', () => {
+            chatWindow.classList.toggle('active');
+        });
+
+        closeChat.addEventListener('click', () => {
+            chatWindow.classList.remove('active');
+        });
+
+        saveKeys.addEventListener('click', () => {
+            const apiKey = apiKeyInput.value;
+            const secretKey = secretKeyInput.value;
+            if (apiKey && secretKey) {
+                localStorage.setItem('baiduApiKey', apiKey);
+                localStorage.setItem('baiduSecretKey', secretKey);
+                alert('密钥已保存！');
+            } else {
+                alert('请输入完整的API Key和Secret Key');
+            }
+        });
+
+        apiKeyInput.value = localStorage.getItem('baiduApiKey') || '';
+        secretKeyInput.value = localStorage.getItem('baiduSecretKey') || '';
+
+        sendMessage.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+
+        async function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            chatMessages.innerHTML += `<div class="message user-message">${message}</div>`;
+            chatInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            chatMessages.innerHTML += `<div class="message ai-message typing">AI正在思考...</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const apiKey = localStorage.getItem('baiduApiKey');
+                const secretKey = localStorage.getItem('baiduSecretKey');
+
+                if (!apiKey || !secretKey) {
+                    document.querySelector('.typing').remove();
+                    chatMessages.innerHTML += `<div class="message ai-message">请先在上方输入百度文心一言的API Key和Secret Key并保存。</div>`;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    return;
+                }
+
+                const tokenResponse = await fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${apiKey}&client_secret=${secretKey}`);
+                const tokenData = await tokenResponse.json();
+
+                if (!tokenData.access_token) {
+                    throw new Error('获取access_token失败');
+                }
+
+                const response = await fetch(`https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=${tokenData.access_token}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [{ role: 'user', content: message }],
+                        temperature: 0.7,
+                        top_p: 0.8
+                    })
+                });
+
+                const data = await response.json();
+                document.querySelector('.typing').remove();
+                
+                if (data.result) {
+                    chatMessages.innerHTML += `<div class="message ai-message">${data.result}</div>`;
+                } else {
+                    chatMessages.innerHTML += `<div class="message ai-message">抱歉，我无法回答这个问题。</div>`;
+                }
+            } catch (error) {
+                document.querySelector('.typing').remove();
+                chatMessages.innerHTML += `<div class="message ai-message">请求失败：${error.message}</div>`;
+            }
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html>

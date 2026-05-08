@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>博客文章 - React 18 新特性详解</title>
+        <meta name="description" content="详细介绍React 18的新特性，包括并发渲染、自动批处理、新的Suspense功能等。">
+        <meta name="keywords" content="React 18,新特性,并发渲染,自动批处理,Suspense">
+        <meta name="author" content="张三">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-XXXXXXXXXX');
+        </script>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a6fd8;
+            --primary-light: #7c8ffe;
+            --secondary: #764ba2;
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1);
+            --radius-sm: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-md);
+            z-index: 9999;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .skip-link:focus { top: 1rem; }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        .navbar.scrolled { box-shadow: var(--shadow-md); }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before { content: '🎯'; font-size: 1.2rem; }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            background: rgba(102, 126, 234, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle, .lang-toggle {
+            background: none;
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            margin-left: 0.5rem;
+        }
+
+        .theme-toggle:hover, .lang-toggle:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text);
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .hamburger:hover { background: var(--border); }
+
+        /* 响应式导航 */
+        @media (max-width: 768px) {
+            .hamburger { display: block; }
+
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: var(--bg-card);
+                flex-direction: column;
+                padding: 1.5rem;
+                box-shadow: var(--shadow-lg);
+                transform: translateY(-100%);
+                opacity: 0;
+                visibility: hidden;
+                transition: var(--transition);
+            }
+
+            .nav-links.active {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .nav-links li { margin: 0.5rem 0; width: 100%; }
+            .nav-links a { display: block; text-align: center; }
+
+            .theme-toggle, .lang-toggle {
+                margin-left: 0;
+                margin-top: 1rem;
+                width: 100%;
+            }
+        }
+
+        /* 博客文章 */
+        .blog-post {
+            padding: 8rem 0 4rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            color: var(--text);
+            text-decoration: none;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            border: 2px solid var(--border);
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+        }
+
+        .back-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateX(-4px);
+        }
+
+        .blog-post-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .blog-post-image {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+        }
+
+        .blog-post-content {
+            padding: 2rem;
+        }
+
+        .blog-post-title {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .blog-post-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .blog-post-body {
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .blog-post-body p {
+            margin-bottom: 1.5rem;
+        }
+
+        .blog-post-body h2 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+            font-size: 1.5rem;
+        }
+
+        .blog-post-body ul, .blog-post-body ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        .blog-post-body li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* 相关博客 */
+        .related-posts {
+            padding: 4rem 0;
+            background: var(--bg);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .projects-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .project-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            position: relative;
+            transform-style: preserve-3d;
+            border: 1px solid var(--border);
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .project-card:hover::before { opacity: 1; }
+
+        .project-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .project-card:hover .project-image { transform: scale(1.05); }
+
+        .project-content {
+            padding: 1.5rem;
+        }
+
+        .project-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        .project-card:hover .project-title { color: var(--primary); }
+
+        .project-description {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .project-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .project-link:hover::before { left: 100%; }
+
+        .project-link:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .footer {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iI2ZmZmZmZmIwIi8+Cjwvc3ZnPg==');
+            opacity: 0.1;
+        }
+
+        .footer-content { position: relative; z-index: 1; }
+        .footer-logo { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+            opacity: 0.9;
+        }
+
+        .footer-links a:hover { opacity: 1; transform: translateY(-2px); }
+        .footer-copyright { opacity: 0.8; font-size: 0.9rem; }
+
+        /* 暗黑模式 */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .navbar { background: rgba(30, 30, 30, 0.95); }
+        body.dark-mode .blog-post, body.dark-mode .related-posts { background-color: #1e1e1e; }
+        body.dark-mode .footer { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+        body.dark-mode .blog-post-card, body.dark-mode .project-card { background-color: #2a2a2a; }
+        body.dark-mode .blog-post-title, body.dark-mode .project-title { color: #e2e8f0; }
+        body.dark-mode .section-title { color: #e2e8f0; }
+        body.dark-mode .blog-post-meta { color: #94a3b8; border-color: #333; }
+        body.dark-mode .blog-post-body { color: #cbd5e1; }
+        body.dark-mode .blog-post-body h2 { color: #e2e8f0; }
+        body.dark-mode .project-description { color: #94a3b8; }
+        body.dark-mode .back-button { background: #2a2a2a; color: #e2e8f0; border-color: #444; }
+        body.dark-mode .back-button:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .blog-post-content { padding: 1.5rem; }
+            .blog-post-meta { flex-direction: column; gap: 0.5rem; }
+            .projects-container { grid-template-columns: 1fr; }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition-duration: 0.01ms !important; }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">跳过导航</a>
+
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">张三</a>
+            <button class="hamburger" id="hamburger" aria-label="菜单">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html#home">首页</a></li>
+                <li><a href="index.html#about">关于我</a></li>
+                <li><a href="index.html#experience">经历</a></li>
+                <li><a href="index.html#skills">技能</a></li>
+                <li><a href="index.html#projects">项目</a></li>
+                <li><a href="blog.html">博客</a></li>
+                <li><a href="index.html#contact">联系</a></li>
+                <li><button class="theme-toggle" id="themeToggle">🌙</button></li>
+                <li><button class="lang-toggle" id="langToggle">EN</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main id="main-content">
+        <section class="blog-post">
+            <div class="container">
+                <a href="blog.html" class="back-button">← 返回博客列表</a>
+                <article class="blog-post-card" id="blogPostContent">
+                </article>
+            </div>
+        </section>
+
+        <section class="related-posts">
+            <div class="container">
+                <h2 class="section-title">相关博客</h2>
+                <div class="projects-container" id="relatedPosts"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">张三</div>
+                <div class="footer-links">
+                    <a href="index.html">首页</a>
+                    <a href="blog.html">博客</a>
+                    <a href="index.html#contact">联系</a>
+                </div>
+                <div class="footer-copyright">© 2026 张三. 保留所有权利.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const blogPosts = [
+            {
+                id: 1, title: "React 18 新特性详解", titleEn: "React 18 New Features Explained",
+                excerpt: "React 18 带来了许多令人兴奋的新特性，包括并发渲染、自动批处理等。",
+                excerptEn: "React 18 brings many exciting new features, including concurrent rendering, automatic batching.",
+                content: `<p>React 18 是 React 团队的一次重大更新，带来了许多性能和开发体验的改进。</p>
+                <h2>1. 并发渲染</h2>
+                <p>React 18 引入了并发渲染机制，允许 React 在不阻塞主线程的情况下处理多个任务。这意味着应用可以在渲染大型组件的同时响应用户输入。</p>
+                <h2>2. 自动批处理</h2>
+                <p>React 18 扩展了批处理的范围，现在即使在异步事件处理程序中也会自动批处理状态更新，减少了不必要的渲染。</p>
+                <h2>3. 新的 Suspense 功能</h2>
+                <p>React 18 改进了 Suspense 的行为，现在支持在服务端渲染中使用 Suspense，并且提供了更好的错误处理机制。</p>
+                <h2>4. startTransition</h2>
+                <p>React 18 引入了 startTransition API，允许开发者将某些更新标记为"过渡"，优先处理更重要的更新。</p>`,
+                contentEn: `<p>React 18 is a major update from the React team, bringing many performance improvements.</p>
+                <h2>1. Concurrent Rendering</h2>
+                <p>React 18 introduces concurrent rendering, allowing React to handle multiple tasks without blocking the main thread.</p>
+                <h2>2. Automatic Batching</h2>
+                <p>React 18 extends batching to automatically batch state updates even in asynchronous event handlers.</p>
+                <h2>3. New Suspense Features</h2>
+                <p>React 18 improves Suspense behavior, now supporting Suspense in server-side rendering.</p>`,
+                image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80",
+                date: "2026-04-20", category: "frontend", tags: ["React", "JavaScript", "前端"]
+            },
+            {
+                id: 2, title: "Python 异步编程入门", titleEn: "Introduction to Python Asynchronous Programming",
+                excerpt: "异步编程是现代Python开发中的重要概念，它可以显著提高应用程序的性能。",
+                excerptEn: "Asynchronous programming is an important concept in modern Python development.",
+                content: `<p>Python的异步编程能力在近年来得到了很大的提升，特别是随着asyncio库的成熟和广泛应用。</p>
+                <h2>1. 异步编程的概念</h2>
+                <p>异步编程允许程序在等待IO操作时执行其他任务，而不是阻塞等待。这对于IO密集型任务特别有用。</p>
+                <h2>2. async和await关键字</h2>
+                <p>Python 3.5+引入了async和await关键字，使异步代码更加简洁易读。</p>
+                <h2>3. asyncio库</h2>
+                <p>asyncio是Python的标准库，提供了异步编程的核心功能，包括事件循环、协程、任务等。</p>`,
+                contentEn: `<p>Python's asynchronous programming capabilities have improved significantly in recent years.</p>
+                <h2>1. Concept of Asynchronous Programming</h2>
+                <p>Asynchronous programming allows programs to execute other tasks while waiting for IO operations.</p>`,
+                image: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800&q=80",
+                date: "2026-04-15", category: "backend", tags: ["Python", "异步编程", "后端"]
+            },
+            {
+                id: 3, title: "开发者的效率工具推荐", titleEn: "Productivity Tools for Developers",
+                excerpt: "作为开发者，选择合适的工具可以大大提高工作效率。",
+                excerptEn: "As a developer, choosing the right tools can greatly improve work efficiency.",
+                content: `<p>作为一名开发者，我尝试过许多工具来提高工作效率。以下是我个人推荐的一些效率工具：</p>
+                <h2>1. 代码编辑器</h2>
+                <p>VS Code：功能强大，插件丰富，是我日常使用的主要编辑器。PyCharm：对于Python开发特别友好。</p>
+                <h2>2. 版本控制</h2>
+                <p>Git：版本控制的标准工具，配合GitHub或GitLab使用。SourceTree：可视化的Git客户端。</p>
+                <h2>3. 协作工具</h2>
+                <p>Slack：团队沟通的首选工具。Trello：项目管理和任务跟踪的好工具。Notion：全能工具。</p>`,
+                contentEn: `<p>As a developer, I've tried many tools to improve my work efficiency.</p>
+                <h2>1. Code Editors</h2>
+                <p>VS Code: Powerful with rich plugins. PyCharm: Particularly friendly for Python development.</p>`,
+                image: "https://images.unsplash.com/photo-1497433762265-9d179a990aa6?w=800&q=80",
+                date: "2026-04-10", category: "life", tags: ["工具", "效率", "开发者"]
+            }
+        ];
+
+        const i18n = {
+            en: { backButton: "← Back to Blog", relatedPosts: "Related Posts", footer: "© 2026 Zhang San. All rights reserved." },
+            zh: { backButton: "← 返回博客列表", relatedPosts: "相关博客", footer: "© 2026 张三. 保留所有权利." }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'zh';
+
+        function init() {
+            if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            });
+
+            document.getElementById('langToggle').textContent = currentLang === 'zh' ? 'EN' : '中文';
+            document.getElementById('langToggle').addEventListener('click', () => {
+                currentLang = currentLang === 'zh' ? 'en' : 'zh';
+                localStorage.setItem('lang', currentLang);
+                document.getElementById('langToggle').textContent = currentLang === 'zh' ? 'EN' : '中文';
+                loadBlogPost();
+            });
+
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.getElementById('navLinks');
+            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', () => navLinks.classList.remove('active'));
+            });
+
+            loadBlogPost();
+        }
+
+        function loadBlogPost() {
+            const postId = new URLSearchParams(window.location.search).get('id');
+            const post = blogPosts.find(p => p.id == postId) || blogPosts[0];
+            const t = i18n[currentLang];
+            const isEn = currentLang === 'en';
+
+            document.getElementById('blogPostContent').innerHTML = `
+                <img src="${post.image}" alt="${isEn ? post.titleEn : post.title}" class="blog-post-image">
+                <div class="blog-post-content">
+                    <h1 class="blog-post-title">${isEn ? post.titleEn : post.title}</h1>
+                    <div class="blog-post-meta">
+                        <span>${post.date}</span>
+                        <span>${post.category === 'frontend' ? (isEn ? 'Frontend' : '前端') : post.category === 'backend' ? (isEn ? 'Backend' : '后端') : (isEn ? 'Life' : '生活')}</span>
+                    </div>
+                    <div class="blog-post-body">${isEn ? post.contentEn : post.content}</div>
+                </div>
+            `;
+
+            document.querySelector('.back-button').textContent = t.backButton;
+            document.querySelector('.section-title').textContent = t.relatedPosts;
+            document.querySelector('.footer-copyright').textContent = t.footer;
+            document.title = `${isEn ? post.titleEn : post.title} - 张三的博客`;
+
+            const related = blogPosts.filter(p => p.id != post.id).slice(0, 3);
+            document.getElementById('relatedPosts').innerHTML = related.map(p => `
+                <a href="blog-post.html?id=${p.id}" class="project-card">
+                    <img src="${p.image}" alt="${isEn ? p.titleEn : p.title}" class="project-image">
+                    <div class="project-content">
+                        <h3 class="project-title">${isEn ? p.titleEn : p.title}</h3>
+                        <p class="project-description">${isEn ? p.excerptEn : p.excerpt}</p>
+                        <span class="project-link">${isEn ? 'Read More' : '阅读更多'}</span>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

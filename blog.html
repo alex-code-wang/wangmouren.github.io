@@ -617,13 +617,26 @@
 
             .sidebar {
                 position: static;
+                margin-top: 24px;
+            }
+
+            .sidebar-section {
+                margin-bottom: 16px;
             }
         }
 
         @media (max-width: 600px) {
+            .navbar .container {
+                padding: 12px 16px;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
             .nav-links {
                 position: fixed;
-                top: 60px;
+                top: 56px;
                 left: 0;
                 right: 0;
                 background: white;
@@ -631,27 +644,118 @@
                 padding: 16px;
                 box-shadow: var(--shadow-lg);
                 display: none;
+                z-index: 999;
             }
 
             .nav-links.active {
                 display: flex;
             }
 
+            .nav-links li {
+                margin-bottom: 8px;
+            }
+
+            .nav-links a {
+                display: block;
+                padding: 12px 16px;
+                border-radius: var(--radius-md);
+            }
+
             .hamburger {
                 display: block;
+                font-size: 1.4rem;
+            }
+
+            .blog-main {
+                padding-top: 80px;
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .blog-header {
+                margin-bottom: 32px;
             }
 
             .blog-header h1 {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
+            }
+
+            .blog-header p {
+                font-size: 1rem;
+            }
+
+            .category-filter {
+                margin-bottom: 24px;
+                gap: 6px;
+            }
+
+            .category-btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
             }
 
             .blog-content {
                 grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .blog-card {
+                border-radius: var(--radius-lg);
+            }
+
+            .blog-card-image {
+                height: 180px;
+            }
+
+            .blog-card-content {
+                padding: 16px;
+            }
+
+            .blog-card-title {
+                font-size: 1rem;
+            }
+
+            .blog-card-excerpt {
+                font-size: 0.85rem;
+            }
+
+            .sidebar {
+                margin-top: 16px;
+            }
+
+            .sidebar-section {
+                padding: 16px;
+            }
+
+            .sidebar-section h3 {
+                font-size: 1rem;
+            }
+
+            .tag-cloud {
+                gap: 6px;
+            }
+
+            .tag {
+                padding: 4px 10px;
+                font-size: 12px;
+            }
+
+            .chat-toggle {
+                width: 55px;
+                height: 55px;
+                bottom: 16px;
+                right: 16px;
             }
 
             .chat-window {
-                width: calc(100vw - 48px);
-                height: 400px;
+                width: calc(100vw - 32px);
+                height: 380px;
+                bottom: 70px;
+                right: 16px;
+            }
+
+            .footer {
+                padding: 32px 16px;
             }
         }
 
@@ -733,6 +837,7 @@
 
     <footer class="footer">
         <div class="footer-logo">王某人</div>
+        <p>邮箱：3695925805@qq.com</p>
         <p>© 2026 王某人. 保留所有权利.</p>
     </footer>
 
